@@ -113,24 +113,47 @@ function Board({xIsNext, squares, onPlay }) {
     // this is a better way of fixing the previous issue
     // the more brute force way would've been to create a function handleFirstSquareClick that calls handleClick(0), handleSecondSquareClick to call handleClick(1), and so on
 
+    const board = [
+        [ 1, 2, 3 ],
+        [ 4, 5, 6 ],
+        [ 7, 8, 9 ]
+    ]
+
+    // return (
+    //     <>
+    //         <div className="status">{status}</div>
+            
+    //         <div className="board-row">
+    //             <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+    //             <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+    //             <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+    //         </div>
+    //         <div className="board-row">
+    //             <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+    //             <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+    //             <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+    //         </div>
+    //         <div className="board-row">
+    //             <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+    //             <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+    //             <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+    //         </div>
+    //     </>
+    // );
+
+    // POST TUTORIAL: using maps instead of hard-coding
     return (
         <>
             <div className="status">{status}</div>
-            <div className="board-row">
-                <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-                <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-                <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
-            </div>
-            <div className="board-row">
-                <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-                <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-                <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-            </div>
-            <div className="board-row">
-                <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-                <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-                <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-            </div>
+            <>
+                {board.map((row, i) => (
+                    <div key={i} className="board-row">
+                        {row.map((square) => (
+                            <Square value={squares[square]} onSquareClick={() => handleClick(square)} key={square} />
+                        ))}
+                    </div>
+                ))}
+            </>
         </>
     );
 }
@@ -164,7 +187,14 @@ export default function Game() {
     // e.g. [1, 2, 3].map((x) => x * 2) makes [2, 4, 6]
     const moves = history.map((squares, move) => {
         let description;
-        if (move > 0) {
+
+        if (move === currentMove) { // POST TUTORIAL: for the current move only, show text instead of a button
+            return (
+                <li key={move}>
+                    You are at move #{move}
+                </li>
+            );
+        } else if (move > 0) {
             description = 'Go to move #' + move;
         } else {
             description = 'Go to game start';
