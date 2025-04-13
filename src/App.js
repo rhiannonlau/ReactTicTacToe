@@ -62,13 +62,13 @@ function Square({ value, onSquareClick }) {
     );
 }
 
-export default function Board() {
-    const [xIsNext, setXIsNext] = useState(true); // turn tracking
+function Board({xIsNext, squares, onPlay }) {
+    // const [xIsNext, setXIsNext] = useState(true); // turn tracking
 
     // to collect data from multiple children or have two child components communicate, declare the shared state in their parent instead
     // i.e. in this case, use the parent Board to collect data from the nine child Squares
     // then pass the data back down to the child via props
-    const [squares, setSquares] = useState(Array(9).fill(null)); // each entry is the value of a corresponding Square
+    // const [squares, setSquares] = useState(Array(9).fill(null)); // each entry is the value of a corresponding Square
     // KEY: WHEN THE SQUARES STATE IS UPDATED, BOARD AND ALL ITS CHILDREN RE-RENDER
     // Array(9).fill(null) creates an array with nine null elems
     // useState() declares a squares state var thats initially set to that array
@@ -86,8 +86,10 @@ export default function Board() {
             nextSquares[i] = "O";
         }
 
-        setSquares(nextSquares);
-        setXIsNext(!xIsNext);
+        // setSquares(nextSquares);
+        // setXIsNext(!xIsNext);
+
+        onPlay(nextSquares);
 
         // benefits of immutability:
             // version control: provides the ability to undo/redo actions by keeping previous versions of the data intact
@@ -130,6 +132,64 @@ export default function Board() {
                 <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
             </div>
         </>
+    );
+}
+
+export default function Game() {
+    // const [xIsNext, setXIsNext] = useState(true); // turn tracking
+    const [history, setHistory] = useState([Array(9).fill(null)]); // track board history
+    const [currentMove, setCurrentMove] = useState(0); // keep track of which step the user is viewing
+    const xIsNext = currentMove % 2 === 0; // remove the redundant state from three lines up by setting x to true if the number that currentMove is changing to is even
+    // const currentSquares = history[history.length - 1]; // to render the squares for the current move
+    const currentSquares = history[currentMove]; // render the selected move, instead of always the last one
+
+    function handlePlay(nextSquares) { // called by board to update game
+        // setHistory([...history, nextSquares]); // creates a new array that contains all the items in history, followed by nextSquares
+        
+        // update handlePlay so that it only keeps the portion of history up to the move we're jumping to
+        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+        setHistory(nextHistory);
+        setCurrentMove(nextHistory.length - 1); // update to the latest history entry
+
+
+        // setXIsNext(!xIsNext);
+    }
+
+    function jumpTo(nextMove) {
+        setCurrentMove(nextMove);
+        // setXIsNext(nextMove % 2 === 0);
+    }
+
+    // map transforms one array into another
+    // e.g. [1, 2, 3].map((x) => x * 2) makes [2, 4, 6]
+    const moves = history.map((squares, move) => {
+        let description;
+        if (move > 0) {
+            description = 'Go to move #' + move;
+        } else {
+            description = 'Go to game start';
+        }
+
+        // lists SHOULD HAVE keys to track components
+        // if the list has a key that didn't exist, React makes a new component
+        // if the list doesn't have a key that it did before, React gets rid of it
+        // if a key has been moved or updated, React acts accordingly
+        return (
+            <li key={move}>
+                <button onClick={() => jumpTo(move)}>{description}</button>
+            </li>
+        );
+    });
+
+    return (
+        <div className="game">
+            <div className="game-board">
+                <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+            </div>
+            <div className="game-info">
+                <ol>{moves}</ol>
+            </div>
+        </div>
     );
 }
 
