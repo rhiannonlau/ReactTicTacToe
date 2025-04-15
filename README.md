@@ -1,12 +1,13 @@
 # React Tic Tac Toe
 Simple Tic Tac Toe created by following the React tutorial: https://react.dev/learn/tutorial-tic-tac-toe .
 </br>
+</br>
 Tutorial:
 <ol>
 <li>Basic tic tac toe ✓
 <li>Time travel ✓
 </ol>
-</br></br>
+</br>
 Post tutorial exercises:
 <ol>
 <li>Show "You are at move #" for the current move instead of a button ✓
