@@ -51,10 +51,14 @@ import { useState } from 'react';
 //     // return (<button className="square" onClick={handleClick}>{value}</button>);
 // }
 
-function Square({ value, onSquareClick }) {
+function Square({ value, onSquareClick, isWin }) {
+    // if (isWin) {
+    //     return <button className="square yellow" onClick={onSquareClick}>{value}</button>;
+    // }
+
     return (
         <button
-            className="square"
+            className={ isWin ? "yellow" : "square"}
             onClick={onSquareClick}
         >
             {value}
@@ -62,7 +66,7 @@ function Square({ value, onSquareClick }) {
     );
 }
 
-function Board({xIsNext, squares, onPlay }) {
+function Board({xIsNext, squares, onPlay, draw }) {
     // const [xIsNext, setXIsNext] = useState(true); // turn tracking
 
     // to collect data from multiple children or have two child components communicate, declare the shared state in their parent instead
@@ -74,7 +78,7 @@ function Board({xIsNext, squares, onPlay }) {
     // useState() declares a squares state var thats initially set to that array
 
     function handleClick(i) {
-        if (squares[i] || calculateWinner(squares)) { // check if the square is not empty or a winner has been found and return early
+        if (squares[i] || calculateWinner(squares)) { // check if the square is not empty or if a winner has been found and return early
             return;
         }
 
@@ -96,12 +100,16 @@ function Board({xIsNext, squares, onPlay }) {
             // performance: prevents parts of the data that were not changed from re-rendering
     }
 
-    const winner = calculateWinner(squares);
+    let winner = calculateWinner(squares);
     let status;
     if (winner) {
-        status = 'Winner: ' + winner;
+        status = 'Winner: ' + squares[winner[0]];
+    } else if (draw) {
+        status = 'Draw';
+        winner = [];
     } else {
         status = 'Next player: ' + (xIsNext ? 'X' : 'O');
+        winner = [];
     }
 
     // in return, using onSquareClick={handleClick(0)} won't work because handleClick is part of the rendering of Board
@@ -114,11 +122,12 @@ function Board({xIsNext, squares, onPlay }) {
     // the more brute force way would've been to create a function handleFirstSquareClick that calls handleClick(0), handleSecondSquareClick to call handleClick(1), and so on
 
     const board = [
-        [ 1, 2, 3 ],
-        [ 4, 5, 6 ],
-        [ 7, 8, 9 ]
+        [ 0, 1, 2 ],
+        [ 3, 4, 5 ],
+        [ 6, 7, 8 ]
     ]
 
+    // TUTORIAL: hard-coding the board
     // return (
     //     <>
     //         <div className="status">{status}</div>
@@ -149,7 +158,7 @@ function Board({xIsNext, squares, onPlay }) {
                 {board.map((row, i) => (
                     <div key={i} className="board-row">
                         {row.map((square) => (
-                            <Square value={squares[square]} onSquareClick={() => handleClick(square)} key={square} />
+                            <Square value={squares[square]} onSquareClick={() => handleClick(square)} isWin={winner.includes(square)} key={square} />
                         ))}
                     </div>
                 ))}
@@ -165,6 +174,11 @@ export default function Game() {
     const xIsNext = currentMove % 2 === 0; // remove the redundant state from three lines up by setting x to true if the number that currentMove is changing to is even
     // const currentSquares = history[history.length - 1]; // to render the squares for the current move
     const currentSquares = history[currentMove]; // render the selected move, instead of always the last one
+
+    // POST TUTORIAL vars
+    const [order, setOrder] = useState(0); // 0 for ascending, 1 for descending
+    let orderString = order ? "Sort by ascending" : "Sort by descending";
+    const draw = currentSquares.includes(null) ? false : true; // display a message about draws
 
     function handlePlay(nextSquares) { // called by board to update game
         // setHistory([...history, nextSquares]); // creates a new array that contains all the items in history, followed by nextSquares
@@ -183,9 +197,15 @@ export default function Game() {
         // setXIsNext(nextMove % 2 === 0);
     }
 
+    // POST TUTORIAL: add toggle button that sorts moves in ascending or descending order
+    function changeOrder(order) {
+        order = order ? 0 : 1;
+        setOrder(order);
+    }
+
     // map transforms one array into another
     // e.g. [1, 2, 3].map((x) => x * 2) makes [2, 4, 6]
-    const moves = history.map((squares, move) => {
+    var moves = history.map((squares, move) => {
         let description;
 
         if (move === currentMove) { // POST TUTORIAL: for the current move only, show text instead of a button
@@ -211,15 +231,21 @@ export default function Game() {
         );
     });
 
+    moves = order ? moves.toReversed() : moves;
+
     return (
-        <div className="game">
-            <div className="game-board">
-                <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <>
+            <div className="game">
+                <div className="game-board">
+                    <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} draw={draw} />
+                </div>
+                <div className="game-info">
+                    <ol>{moves}</ol>
+                </div>
+                
             </div>
-            <div className="game-info">
-                <ol>{moves}</ol>
-            </div>
-        </div>
+            <button onClick={() => changeOrder(order)}>{orderString}</button>
+        </>
     );
 }
 
@@ -239,7 +265,10 @@ function calculateWinner(squares) {
       const [a, b, c] = lines[i];
 
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+        // return squares[a]; // TUTORIAL: return the first square
+
+        // POST TUTORIAL: highlight the three squares that caused the win
+        return [a, b, c];
       }
     }
 
